@@ -10,6 +10,13 @@
 
 <hr><br>
 ## Screenshots
+### Setting alias using shell script and running script using alias
+- <b>It is imporant to run the script using 'source' command for the alias expansion to work in current session.</b>
+- ![](/screenshots/alias.png)
+- To set alias permanently, i.e. to add the alias command in .bash_profile or .bashrc:
+	- use -p option
+	- source setalias.sh -p
+
 ### Running script with path and file options
 - ![Running script with path and file options](/screenshots/pf.png)
 
