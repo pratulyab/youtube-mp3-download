@@ -20,9 +20,33 @@ youtube = "https://www.youtube.com"
 def escapeChars(search_query):
 	return search_query.replace('+','%2B').replace(' ','+').replace('\\','%5C').replace('/','%2F').replace('\'','%27').replace('=','%3D').replace('!','%21').replace('(','%28').replace(')','%29').replace(',','%2C').replace('@','%40').replace('#','%23').replace('$','%24').replace('%','%25').replace('^','%5E').replace('&','%26').replace('*','%2A').replace('?','%3F').replace('|','%7C').replace(';','%3B').replace(':','%3A')
 
+def get_class_strained_resultset(soup, html_tag, classes=[], match_strictly=False):
+	# Strains the soup/result_set provided that each filtered tag contains
+	# at least the provided classes if match_strictly=False (Subset)
+	# otherwise, strictly matches the classes (equality)
+	result_set = bs4.ResultSet([])
+	classes = [klass for klass in classes if klass]
+	if not classes or not html_tag:
+		return result_set
+	if isinstance(soup, (bs4.BeautifulSoup, bs4.element.Tag)):
+		soup = soup.find_all(html_tag, {'class': classes[0]})
+	elif not isinstance(soup, bs4.ResultSet):
+		raise TypeError
+	classes = set(classes)
+	for tag in soup:
+		if not tag.has_attr('class'):
+			continue
+		klasses = set([klass for klass in tag['class'] if klass])
+		if match_strictly:
+			if classes == klasses:
+				result_set.append(tag)
+		else:
+			if klasses.issubset(classes) or classes.issubset(klasses):
+				result_set.append(tag)
+	return result_set
 
 def handleAutoCorrect(soup,original):
-	correction = soup.find_all("a",{"class":"yt-uix-sessionlink spell-correction-corrected-query spf-link "})
+	correction = get_class_strained_resultset(soup, 'a', ["yt-uix-sessionlink", "spell-correction-corrected-query", "spf-link"], match_strictly=True)
 	if correction:
 		corrected = ""
 		for i in correction:
@@ -33,7 +57,7 @@ def handleAutoCorrect(soup,original):
 		
 		ch = input()
 		if ch in ['','y','Y','yes','Yes','YES']:
-			redirect = soup.find_all("a",{"class":"yt-uix-sessionlink spell-correction-original-query spf-link "})
+			redirect = get_class_strained_resultset(soup, 'a', ["yt-uix-sessionlink", "spell-correction-original-query", "spf-link"], match_strictly=True)
 			if not redirect:
 				cprint("NEVER","yellow")
 				return ""
@@ -58,7 +82,8 @@ def getVideoID(search_query):
 	
 	soup = handleAutoCorrect(soup,original) #Will Send Either The Original soup or Non-AutoCorrected Soup
 
-	main_container = soup.find_all("div", {"class" : "yt-lockup-dismissable yt-uix-tile"})
+#	main_container = soup.find_all("div", {"class" : "yt-lockup-dismissable yt-uix-tile"})
+	main_container = get_class_strained_resultset(soup, 'div', ["yt-lockup-dismissable", "yt-uix-tile"])
 	if not main_container:
 		cprint("Sorry! Couldn't Find A Satisfactory Result For You. Please Try Again With A Better Search Query!","blue")
 		quit()
@@ -71,12 +96,12 @@ def getVideoID(search_query):
 	cprint("You Can Choose Previous Result By Entering The Result Number","cyan")
 	
 	for container in main_container:
-		if len(container.find_all("span",{"class" : "yt-badge ad-badge-byline yt-badge-ad"})):
+		if len(get_class_strained_resultset(container, 'span' , ["yt-badge", "ad-badge-byline" ,"yt-badge-ad"])):
 			cprint("Ad Removed","yellow")
 			continue
 		
 		#Video Time
-		thumbnail = container.find_all("div",{"class" : "yt-lockup-thumbnail contains-addto"})
+		thumbnail = get_class_strained_resultset(container, 'div', ["yt-lockup-thumbnail", "contains-addto"])
 		if not thumbnail:
 			continue #Means Playlist Entry
 		time = thumbnail[0].find_all("span",{"class" : "video-time"})
@@ -94,8 +119,8 @@ def getVideoID(search_query):
 			continue
 
 		#Content
-		content_container = container.find_all("div",{"class" : "yt-lockup-content"})
-		anchor = content_container[0].find_all("a",{"class" : "yt-uix-sessionlink yt-uix-tile-link yt-ui-ellipsis yt-ui-ellipsis-2 spf-link "})
+		content_container = container.find_all("div", {"class" : "yt-lockup-content"})
+		anchor = get_class_strained_resultset(content_container[0], 'a', ["yt-uix-sessionlink", "yt-uix-tile-link", "yt-ui-ellipsis", "yt-ui-ellipsis-2", "spf-link"])
 		
 		if not anchor:
 			cprint("Sorry! Couldn't Find A Satisfactory Result For You. Please Try Again With A Better Search Query!","blue")
