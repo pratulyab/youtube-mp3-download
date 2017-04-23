@@ -18,7 +18,7 @@ youtube = "https://www.youtube.com"
 
 
 def escapeChars(search_query):
-	return search_query.replace('+','%2B').replace(' ','+').replace('\\','%5C').replace('/','%2F').replace('\'','%27').replace('=','%3D').replace('!','%21').replace('(','%28').replace(')','%29').replace(',','%2C').replace('@','%40').replace('#','%23').replace('$','%24').replace('%','%25').replace('^','%5E').replace('&','%26').replace('*','%2A').replace('?','%3F').replace('|','%7C').replace(';','%3B').replace(':','%3A')
+	return search_query.replace('%','%25').replace('+','%2B').replace(' ','+').replace('\\','%5C').replace('/','%2F').replace('\'','%27').replace('=','%3D').replace('!','%21').replace('(','%28').replace(')','%29').replace(',','%2C').replace('@','%40').replace('#','%23').replace('$','%24').replace('^','%5E').replace('&','%26').replace('*','%2A').replace('?','%3F').replace('|','%7C').replace(';','%3B').replace(':','%3A')
 
 def get_class_strained_resultset(soup, html_tag, classes=[], match_strictly=False):
 	# Strains the soup/result_set provided that each filtered tag contains
